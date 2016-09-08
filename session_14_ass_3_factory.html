@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="AngularApp">
+<head>
+	<title>Angular Example</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+	<script>
+		var myapp = angular.module("AngularApp", []);
+		myapp.factory('UserFactory', function(){
+			var serviceObj = {};
+			serviceObj.userid = 1;
+			serviceObj.users = [
+				{id  : serviceObj.userid, name : 'Soma', age : 27, city: 'Kolkata', salary : 20000.567},
+				{id  : ++serviceObj.userid, name : 'Somashree', age : 54, city: 'Bangalore', salary : 553657.00},
+				{id  : ++serviceObj.userid, name : 'Shree', age : 24, city: 'Delhi', salary : 53000.00}
+			];
+			
+			serviceObj.list = function() {
+				return serviceObj.users;
+			};
+			
+			serviceObj.save = function(newuser) {
+				if (newuser.id == null) { // for creating a new user
+					newuser.id = ++serviceObj.userid; 
+					serviceObj.users.push(newuser);
+				}
+				else {
+					// find the existing user and update
+					for (i in serviceObj.users) {
+						if(serviceObj.users[i].id == newuser.id){
+							serviceObj.users[i] = newuser;
+						}
+					}
+				}
+			};
+			
+			serviceObj.get = function(id){
+				// find and return an existing user with the given id
+				for (i in serviceObj.users) {
+					if(serviceObj.users[i].id == id){
+						return serviceObj.users[i];
+					}
+				}
+			};
+			
+			serviceObj.delete = function(id){
+				// find and delete an existing user with the given id
+				for (i in serviceObj.users) {
+					if(serviceObj.users[i].id == id){
+						serviceObj.users.splice(i,1);
+					}
+				}
+			};
+			
+			return serviceObj;
+		});
+		
+		myapp.controller('UserController', function($scope, UserFactory){
+			
+			$scope.users = UserFactory.list();
+			
+			$scope.saveUser = function(){
+				UserFactory.save($scope.newuser);
+				$scope.newuser = {};
+			};
+			
+			$scope.editUser = function(id) {
+				//$scope.newuser = UserFactory.get(id); 
+				//Instead of directly modifying the user first copy it to the form and get it modified.
+				$scope.newuser = angular.copy(UserFactory.get(id));
+			};
+			
+			$scope.deleteUser = function(id) {
+				$scope.newuser = UserFactory.delete(id); 
+				//$scope.newuser = {};
+			};
+			
+			$scope.resetSearch = function() {
+				$scope.searchuser.name = "";
+			};
+		});
+	</script>
+</head>
+<body>
+
+	<div class="container-fluid">
+		<div class="col-md-6" ng-controller="UserController">
+			<h3>Create user</h3>
+			<form class="well">
+				<div class="form-group row">
+					<label class="col-sm-2 col-form-label">Name</label>
+					<div class="col-sm-10"><input type="text" name="name" ng-model="newuser.name" class="form-control" /></div>
+				</div>
+				<div class="form-group row">	
+					<label class="col-sm-2 col-form-label">Age</label>
+					<div class="col-sm-2"><input type="number" name="email" ng-model="newuser.age" class="form-control" /></div>
+				
+					<label class="col-sm-1 col-form-label">Salary</label>
+					<div class="col-sm-3"><input type="number" name="email" ng-model="newuser.salary" class="form-control" /></div>
+					
+					<label class="col-sm-1 col-form-label">City</label>
+					<div class="col-sm-3"><input type="text" name="email" ng-model="newuser.city" class="form-control" /></div>
+				</div>				
+				<input type="hidden" ng-model="newuser.id" />
+				<input type="button" value="Save" ng-click="saveUser()" class="btn btn-primary" />
+			</form>
+			
+			<h3>Users Table</h3>
+			<div class="form-group row">
+				<div class="col-sm-10"><input type="text" placeholder="Search User" ng-model="searchuser.name" class="form-control" /></div>
+				<div class="col-sm-2"><input type="button" value="Reset" ng-click="resetSearch()" class="form-control btn btn-warning" /></div>
+			</div>
+			<table class="table table-striped table-bordered">
+			<thead>
+				<tr>
+					<th>Id</th>
+					<th>Name</th>
+					<th>Age</th>
+					<th>City</th>
+					<th>Salary</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="user in users | filter: searchuser">
+					<td>{{ user.id }}</td>
+					<td>{{ user.name }}</td>
+					<td>{{ user.age }}</td>
+					<td>{{ user.city }}</td>
+					<td>{{ user.salary |  currency:"Rs. "}}</td>
+					<td> 
+						<a href="javascript:void(0)" ng-click="editUser(user.id)">Edit</a> | 
+						<a href="javascript:void(0)" ng-click="deleteUser(user.id)">Delete</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		</div>
+	</div>
+</body>
+</html>
+
